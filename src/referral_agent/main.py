@@ -1,12 +1,11 @@
 import streamlit as st
+import pandas as pd
+from io import StringIO
+from datetime import datetime
 from initialize_agent import initialize_agent
 from guideline_recommendations import get_guideline_recommendations
 from parse_and_summarize_pdf import parse_and_summarize_pdf
 
-# Initialize the agent for recommendations
-agent_executor = initialize_agent()
-
-# App title and subheader
 # Add custom CSS for the subheader
 st.markdown(
     """
@@ -25,11 +24,14 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# App title and styled subheader
+# Initialize the agent for recommendations
+agent_executor = initialize_agent()
+
+# App title and subheader
 st.title("Rapid CRC Pathway Tool")
 st.markdown('<div class="subheader">Streamlined Urgent Cancer Referrals</div>', unsafe_allow_html=True)
 
-# Dropdown selector for cancer type with disabled options
+# Dropdown selector for cancer type
 selected_cancer = st.selectbox(
     "Select Cancer Type",
     options=["Colorectal Cancer", "Bowel Cancer (Disabled)", "Other Cancer (Disabled)"],
@@ -37,48 +39,77 @@ selected_cancer = st.selectbox(
     help="Currently, only Colorectal Cancer is supported."
 )
 
-# Logic to prevent interaction with disabled options
 if "Disabled" in selected_cancer:
     st.warning("This option is currently not supported. Please select 'Colorectal Cancer (Enabled)'.")
     st.stop()
 
 # Sidebar for file upload
-st.sidebar.header("Upload PDF")
-uploaded_file = st.sidebar.file_uploader("Upload a patient's 2WW referral form (PDF)", type="pdf")
+st.sidebar.header("Upload PDFs")
+uploaded_files = st.sidebar.file_uploader(
+    "Upload one or more 2WW referral forms (PDFs)",
+    type=["pdf"],
+    accept_multiple_files=True,
+)
 
-# Initialize chat history
-if "chat_history" not in st.session_state:
-    st.session_state["chat_history"] = []
+# Persistent storage for results
+if "results" not in st.session_state:
+    st.session_state["results"] = []
 
-# Display chat messages
+if uploaded_files:
+    st.sidebar.success(f"{len(uploaded_files)} file(s) uploaded successfully!")
+    
+    for uploaded_file in uploaded_files:
+        # Check if this file has already been processed
+        if any(result["Filename"] == uploaded_file.name for result in st.session_state["results"]):
+            continue  # Skip reprocessing
+        
+        with st.spinner(f"Processing {uploaded_file.name}..."):
+            try:
+                # Parse and summarize the PDF
+                summary = parse_and_summarize_pdf(uploaded_file)
 
-for chat in st.session_state["chat_history"]:
-    st.write(chat)
+                # Get recommendations and intermediate steps
+                intermediate_steps, final_answer = get_guideline_recommendations(summary, agent_executor)
 
-# File upload and analysis
-if uploaded_file:
-    st.sidebar.success("File uploaded successfully!")
-    with st.spinner("Processing the uploaded PDF..."):
-        try:
-            # Parse and summarize the PDF
-             # Parse and summarize the PDF
-            summary = parse_and_summarize_pdf(uploaded_file)
-            st.subheader("Extracted Patient Data")
-            st.text_area("Summary of Patient 2WW Form", summary, height=300)
+                # Store results in session state
+                st.session_state["results"].append({
+                    "Filename": uploaded_file.name,
+                    "Patient Data": summary,
+                    "Intermediate Steps": intermediate_steps,
+                    "Final Answer": final_answer,
+                })
 
-            # Get recommendations and intermediate steps
-            intermediate_steps, final_answer = get_guideline_recommendations(summary, agent_executor)
+                # Display results for each file
+                with st.expander(f"Results for {uploaded_file.name}"):
+                    st.subheader("Extracted Patient Data")
+                    st.text_area(f"Summary of {uploaded_file.name}", summary, height=300)
 
-            # Display final recommendation
-            st.subheader("Recommendations")
-            st.text_area("Detailed Recommendation", final_answer, height=150)
+                    st.subheader("Recommendations")
+                    st.text_area(f"Recommendations for {uploaded_file.name}", final_answer, height=150)
 
-            # Display intermediate steps
-            st.subheader("Intermediate Steps")
-            st.text_area("Agent's Thought Process", intermediate_steps, height=300)
+                    st.subheader("Intermediate Steps")
+                    st.text_area(f"Agent's Thought Process for {uploaded_file.name}", intermediate_steps, height=300)
 
+            except Exception as e:
+                st.error(f"An error occurred while processing {uploaded_file.name}: {e}")
 
-        except Exception as e:
-            st.error(f"An error occurred while processing the file: {e}")
+    # Provide a consolidated download button for all results
+    if st.session_state["results"]:
+        # Convert results to a pandas DataFrame
+        df = pd.DataFrame(st.session_state["results"])
 
-st.sidebar.info("Remember to clear your chat history periodically for privacy.")
+        # Convert DataFrame to CSV
+        csv_buffer = StringIO()
+        df.to_csv(csv_buffer, index=False)
+        csv_data = csv_buffer.getvalue()
+
+        # Generate a dynamic filename with the current timestamp
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        filename = f"all_results_{timestamp}.csv"
+        # Add a download button for the CSV
+        st.download_button(
+            label="Download All Results as CSV",
+            data=csv_data,
+            file_name=filename,
+            mime="text/csv",
+        )
