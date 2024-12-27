@@ -187,6 +187,8 @@ mypy-extensions==1.0.0
     # via typing-inspect
 narwhals==1.19.1
     # via altair
+neo4j==5.27.0
+    # via referral-agent
 nest-asyncio==1.6.0
     # via llama-index-core
 networkx==3.4.2
@@ -200,7 +202,6 @@ numpy==2.2.1
     # via llama-index-core
     # via pandas
     # via pydeck
-    # via referral-agent
     # via streamlit
 ollama==0.4.4
     # via langchain-ollama
@@ -274,6 +275,7 @@ python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
     # via pydantic-settings
 pytz==2024.2
+    # via neo4j
     # via pandas
 pyyaml==6.0.2
     # via langchain
