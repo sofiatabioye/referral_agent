@@ -70,7 +70,7 @@ def parse_and_summarize_pdf(file):
                 - Aged 40 years or over: Yes/No
                 - FIT Negative: Yes/No (This is a "Yes" if FIT result is less than 10), FIT result: [Value/Not provided]
                 - Ferritin ≤45 µg/L: Yes/No (This is a "Yes" if Ferritin value ≤45µg/L), Ferritin: [Value/Not provided]
-                - Anaemia: Yes/No (Yes if Hb value less than 130 g/L (13 g/dL) in men or 115 g/L (11.5 g/dL) in non-menstruating women). Ensure that Hb values reported in g/L are compared to thresholds directly in g/L, Hb: [Value/Not provided].
+                - Iron deficiency anaemia: Yes/No (Yes if Hb value less than 130 g/L (13 g/dL) in men or 115 g/L (11.5 g/dL) in non-menstruating women). Ensure that Hb values reported in g/L are compared to thresholds directly in g/L, Hb: [Value/Not provided].
                 
             3. **General Formatting Rules**:
             - Provide a structured summary with the fields below.

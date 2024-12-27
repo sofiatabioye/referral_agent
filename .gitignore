@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
-
+neo4j/
 # venv
 .venv
+.secrets.toml

@@ -12,8 +12,10 @@ pc = Pinecone(api_key=os.environ.get("PINECONE_API_KEY"))
 index_name = "pathways"
 index = pc.Index(index_name)
 
+filepath = "../../rules/BSOL_Pathway.pdf"
+namespace = "ns1"
 # Load the PDF file
-loader = PyPDFLoader("./rules/BSOL_Pathway.pdf")
+loader = PyPDFLoader(file_path=filepath)
 documents = loader.load()
 
 # Split the text into manageable chunks
@@ -42,6 +44,6 @@ vectors = [
     for i, (text, embedding) in enumerate(zip(texts, embeddings_list))
 ]
 
-index.upsert(vectors=vectors, namespace="ns1")
+index.upsert(vectors=vectors, namespace=namespace)
 
 print(f"Successfully ingested {len(texts)} documents into Pinecone.")
