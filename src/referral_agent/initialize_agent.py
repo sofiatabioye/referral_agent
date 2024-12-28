@@ -1,65 +1,41 @@
-### Module 1: Query Tool and Agent Initialization ###
-
-from langchain.agents import create_react_agent, Tool, AgentExecutor
-from langchain.chains import RetrievalQA
+from langchain.agents import create_react_agent, AgentExecutor
 from langchain.prompts import PromptTemplate
-from langchain_openai import OpenAIEmbeddings
 from langchain_openai import ChatOpenAI
-from langchain_community.vectorstores import Pinecone
-from langchain_core.prompts import ChatPromptTemplate
-from langchain import hub
+from create_neo4j_tool import create_neo4j_tool
 
-def create_query_tool(index_name, tool_name, description, namespace="ns1"):
+def create_langchain_agent(uri, user, password):
     """
-    Creates a tool to query a specified Pinecone index.
-
-    Args:
-        index_name (str): Name of the Pinecone index.
-        tool_name (str): Name of the tool.
-        description (str): Description of the tool.
-        namespace (str): Namespace for Pinecone index.
-
-    Returns:
-        Tool: A LangChain tool for querying the specified index.
+    Create a LangChain agent that uses the Neo4j tool.
     """
-    pinecone_index = Pinecone.from_existing_index(index_name, OpenAIEmbeddings(), namespace=namespace)
+    # Create the Neo4j Tool
+    neo4j_tool = create_neo4j_tool(uri, user, password)
 
-    retrieval_chain = RetrievalQA.from_chain_type(
-        llm=ChatOpenAI(model="gpt-3.5-turbo"),
-        retriever=pinecone_index.as_retriever()
-    )
-    return Tool(
-        name=tool_name,
-        func=retrieval_chain.run,
-        description=description
-    )
+    # Define tools
+    tools = [neo4j_tool]
+    tool_names = [tool.name for tool in tools]
 
-def initialize_agent():
-    """Initializes the LangChain agent with the necessary tools and prompt."""
-    guideline_tool = create_query_tool("pathways", "GuidelineQuery", "Search the colorectal cancer guideline index for next steps.")
+    # Define the agent prompt
+    template = f"""
+        You are a highly skilled medical assistant specializing in colorectal cancer guidelines.
+        Use the provided tools to analyze patient data and recommend the best course of action.
 
-    tools = [guideline_tool]
-    tool_names = ["GuidelineQuery"]
+        Tools available:
+        {{tools}}: {{tool_names}}
 
-    template = '''You are a highly knowledgeable medical assistant specializing in colorectal cancer referrals. You analyze 2WW referral forms data to provide evidence-based recommendations for the next steps based on colorectal cancer guidelines.
-        Answer the following questions as best you can. Imagine you are the GP and this is all you have about this patient. You have access to the following tools:
-        {tools}
-        Your tasks:
-            1. Carefully analyze the extracted patient data (e.g., age, gender, FIT result, symptoms, WHO performance status, additional history).
-            2. Use the tool to search the guideline documents for the appropriate recommended action and outcome.
-            3. Provide a recommended action exclusively based on the information retrieved from those guidelines.
-        Do not use external knowledge like NICE guidelines; all recommendations must be derived from the provided tools.
+        Instructions:
+        1. Read the patient's summary.
+        2. Use the tool to query for recommendations using the patient's conditions.
+        3. Always analyze the Observation step carefully and avoid retrying unless the tool explicitly failed. . Always format the Action Input as:
 
-        Use the following format:
 
+        Always use the following format:
         Question: the input question you must answer
-        Thought: you should always think about what to do
-        Action: the action to take, should be one of the tools in [{tool_names}]
-        Action Input: the input to the action
-        Observation: the result of the action
-        ... (this Thought/Action/Action Input/Observation can repeat N times)
-        Thought: I now know the final answer
-        Final Answer: the final answer to the original input question
+        Thought: describe what you are thinking
+        Action: the action to take, should be one of the tools in [{{tool_names}}]
+        Action Input: a dictionary with the key "provided_conditions" and a list of conditions. Ensure you pass the correct data format to the tool and not a string but a dictionary.
+        Observation: The tool will return structured recommendations in a list of dictionaries. Analyze the output carefully.
+        Thought: Based on the tool's output, I can now determine the appropriate recommendation.
+        Final Answer: [Your recommendation derived solely from the Observation.]
 
         INTERNAL REASONING GUIDANCE (Do NOT reveal this to the user):
         Analyze the input and reason carefully using 'Thought:'
@@ -68,23 +44,19 @@ def initialize_agent():
         Transition to 'Final Answer' as soon as sufficient information is gathered.
         Avoid redundant iterations and do not re-enter 'Thought:' once a valid final answer is ready
 
-       STOPPING CONDITIONS:
+        STOPPING CONDITIONS:
         • Do NOT re-enter 'Thought → Action → Observation' once the final answer is generated.
 
-
         Begin!
-
-        Question: Given the {input}, provide a recommended course of action and potential outcome
-        Thought:{agent_scratchpad}'''
+        Question: {{input}}
+        Thought: {{agent_scratchpad}}
+        """
 
     prompt = PromptTemplate.from_template(template)
 
-    llm = ChatOpenAI(
-        model="gpt-3.5-turbo",
-        temperature=0.7,
-        max_tokens=1500
-    )
+    # Define the LLM
+    llm = ChatOpenAI(model="gpt-3.5-turbo", temperature=0.7, max_tokens=1500)
 
+    # Create the agent
     agent = create_react_agent(tools=tools, llm=llm, prompt=prompt)
-
-    return AgentExecutor(agent=agent, tools=[guideline_tool], handle_parsing_errors=True, verbose=True)
+    return AgentExecutor(agent=agent, tools=tools, verbose=True, handle_parsing_errors=True)

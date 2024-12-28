@@ -2,7 +2,7 @@ import streamlit as st
 import pandas as pd
 from io import StringIO
 from datetime import datetime
-from initialize_agent import initialize_agent
+from initialize_agent import create_langchain_agent
 from guideline_recommendations import get_guideline_recommendations
 from parse_and_summarize_pdf import parse_and_summarize_pdf
 
@@ -25,7 +25,13 @@ st.markdown(
 )
 
 # Initialize the agent for recommendations
-agent_executor = initialize_agent()
+# Neo4j connection details
+uri= "neo4j+s://7739a51b.databases.neo4j.io"
+username = "neo4j"
+password = "Q9fhROhDv4_YRFy2U_4t5LCwYEeyspi7mu3YSHfTJuk" 
+
+# Create the LangChain agent
+agent = create_langchain_agent(uri, username, password)
 
 # App title and subheader
 st.title("Rapid CRC Pathway Tool")
@@ -66,10 +72,10 @@ if uploaded_files:
         with st.spinner(f"Processing {uploaded_file.name}..."):
             try:
                 # Parse and summarize the PDF
-                summary = parse_and_summarize_pdf(uploaded_file)
-
+                summary, conditions = parse_and_summarize_pdf(uploaded_file)
+                patient_summary = f"Patient presents with the following provided conditions: {conditions}"
                 # Get recommendations and intermediate steps
-                intermediate_steps, final_answer = get_guideline_recommendations(summary, agent_executor)
+                intermediate_steps, final_answer = get_guideline_recommendations(patient_summary, agent)
 
                 # Store results in session state
                 st.session_state["results"].append({

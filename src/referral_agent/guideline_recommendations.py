@@ -17,7 +17,7 @@ def get_guideline_recommendations(summary, agent_executor):
         Based on the following patient data extracted from a patient's 2WW referral form:
         {summary}
 
-        Please provide guideline-based recommendations for the patient. Use the medical guidelines tool to inform your response.
+        Please provide recommendations for the patient. Use the medical guidelines tool to inform your response.
     """
 
     # Capture verbose output

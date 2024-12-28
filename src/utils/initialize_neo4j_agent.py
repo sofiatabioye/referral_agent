@@ -213,8 +213,7 @@ class Neo4jAgent:
     def initialize_agent(self):
         """Initialize a LangChain agent with Neo4j as a tool."""
         tools = [self.neo4j_tool]
-        tool_names = ", ".join([tool.name for tool in tools])
-
+        tool_names = ", ".join([tool.name for tool in tools]) 
         # Define the prompt template
         template = f'''You are a highly knowledgeable medical assistant specializing in colorectal cancer referrals.
         You have access to the following tools:
@@ -299,7 +298,7 @@ if __name__ == "__main__":
     )
     
    # Test with a sample patient summary
-    patient_summary = "Patient is a 55-year-old with a FIT-negative result and symptoms of rectal bleeding and weight loss."
+    patient_summary = "Patient is a 55-year-old with a FIT-negative result and symptoms of rectal bleeding and weight loss. \n{{[\"Fit Negative", "Rectal bleeding", "Weight loss\"]}}"
     provided_conditions = ["Fit Negative", "Rectal bleeding", "Weight loss"]
     
     print("\nTesting Neo4j Agent with Patient Summary...")
