@@ -84,6 +84,7 @@ if uploaded_files:
                     "Intermediate Steps": intermediate_steps,
                     "Final Answer": final_answer,
                 })
+                print(intermediate_steps, 'got here')
 
                 # Display results for each file
                 with st.expander(f"Results for {uploaded_file.name}"):

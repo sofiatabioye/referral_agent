@@ -27,6 +27,9 @@ def get_guideline_recommendations(summary, agent_executor):
     try:
         # Execute the agent and capture logs
         response = agent_executor.invoke({"input": summary})
+        print (response)
+    except Exception as e:
+        print('error roling out')
     finally:
         # Restore standard output
         sys.stdout = old_stdout
