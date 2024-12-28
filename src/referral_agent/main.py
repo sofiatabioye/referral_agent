@@ -5,6 +5,7 @@ from datetime import datetime
 from initialize_agent import create_langchain_agent
 from guideline_recommendations import get_guideline_recommendations
 from parse_and_summarize_pdf import parse_and_summarize_pdf
+import json
 
 # Add custom CSS for the subheader
 st.markdown(
@@ -73,7 +74,8 @@ if uploaded_files:
             try:
                 # Parse and summarize the PDF
                 summary, conditions = parse_and_summarize_pdf(uploaded_file)
-                patient_summary = f"Patient presents with the following provided conditions: {conditions}"
+                provided_conditions = json.dumps(conditions)
+                patient_summary = f"Patient presents with the following provided conditions: {provided_conditions}"
                 # Get recommendations and intermediate steps
                 intermediate_steps, final_answer = get_guideline_recommendations(patient_summary, agent)
 

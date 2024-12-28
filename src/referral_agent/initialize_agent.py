@@ -32,7 +32,7 @@ def create_langchain_agent(uri, user, password):
         Question: the input question you must answer
         Thought: describe what you are thinking
         Action: the action to take, should be one of the tools in [{{tool_names}}]
-        Action Input: a dictionary with the key "provided_conditions" and a list of conditions. Ensure you pass the correct data format to the tool and not a string but a dictionary.
+        Action Input: a dictionary with the key "provided_conditions" and a list of conditions. Ensure you pass the correct data format to the tool.
         Observation: The tool will return structured recommendations in a list of dictionaries. Analyze the output carefully.
         Thought: Based on the tool's output, I can now determine the appropriate recommendation.
         Final Answer: [Your recommendation derived solely from the Observation.]
