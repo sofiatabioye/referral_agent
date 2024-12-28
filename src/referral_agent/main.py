@@ -87,14 +87,15 @@ if uploaded_files:
 
                 # Display results for each file
                 with st.expander(f"Results for {uploaded_file.name}"):
-                    st.subheader("Extracted Patient Data")
-                    st.text_area(f"Summary of {uploaded_file.name}", summary, height=300)
-
                     st.subheader("Recommendations")
                     st.text_area(f"Recommendations for {uploaded_file.name}", final_answer, height=150)
 
-                    st.subheader("Intermediate Steps")
-                    st.text_area(f"Agent's Thought Process for {uploaded_file.name}", intermediate_steps, height=300)
+                    st.subheader("Extracted Patient Data")
+                    st.text_area(f"Summary of {uploaded_file.name}", summary, height=300)
+
+                   
+                    # st.subheader("Intermediate Steps")
+                    # st.text_area(f"Agent's Thought Process for {uploaded_file.name}", intermediate_steps, height=300)
 
             except Exception as e:
                 st.error(f"An error occurred while processing {uploaded_file.name}: {e}")
