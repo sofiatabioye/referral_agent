@@ -143,27 +143,3 @@ def parse_and_summarize_pdf(file):
         return cleaned_data, conditions
     except Exception as e:
         print(f"Error: {e}")
-
-
-# if __name__ == "__main__":
-#     # Path to your PDF file
-#     pdf_path = "../sample_forms/form2.pdf"
-
-#     # Load the PDF file as a file-like object
-#     with open(pdf_path, "rb") as pdf_file:
-#         file_stream = BytesIO(pdf_file.read())
-
-#     # Initialize the parser and summarizer
-#     # summarizer = PDFParserAndSummarizer(model_name="gpt-4o")
-
-#     # Parse and summarize the PDF
-#     try:
-#         summary = parse_and_summarize_pdf(file_stream)
-#         print("\nPDF Summary:")
-#         print(summary)
-#         cleaned_data = clean_and_parse_json(summary)
-#         print("Parsed JSON Data:", cleaned_data)
-#         conditions = map_json_to_conditions(cleaned_data)
-#         print(conditions)
-#     except Exception as e:
-#         print(f"Error: {e}")

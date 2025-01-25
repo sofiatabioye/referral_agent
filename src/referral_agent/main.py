@@ -95,7 +95,6 @@ if uploaded_files:
 
                     st.subheader("Extracted Patient Data")
                     st.text_area(f"Summary of {uploaded_file.name}", summary, height=300)
-
                    
                     # st.subheader("Intermediate Steps")
                     # st.text_area(f"Agent's Thought Process for {uploaded_file.name}", intermediate_steps, height=300)
