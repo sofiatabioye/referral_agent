@@ -34,6 +34,7 @@ beautifulsoup4==4.12.3
 blinker==1.9.0
     # via streamlit
 cachetools==5.5.0
+    # via google-auth
     # via streamlit
 certifi==2024.12.14
     # via httpcore
@@ -66,8 +67,23 @@ gitdb==4.0.11
     # via gitpython
 gitpython==3.1.43
     # via streamlit
+google-api-core==2.24.1
+    # via google-cloud-documentai
+google-auth==2.38.0
+    # via google-api-core
+    # via google-cloud-documentai
+google-cloud-documentai==3.2.0
+    # via referral-agent
+googleapis-common-protos==1.67.0
+    # via google-api-core
+    # via grpcio-status
 greenlet==3.1.1
     # via sqlalchemy
+grpcio==1.70.0
+    # via google-api-core
+    # via grpcio-status
+grpcio-status==1.70.0
+    # via google-api-core
 h11==0.14.0
     # via httpcore
 httpcore==1.0.7
@@ -198,17 +214,19 @@ numpy==2.2.1
     # via langchain
     # via langchain-community
     # via llama-index-core
+    # via opencv-python
     # via pandas
     # via pydeck
-    # via referral-agent
     # via streamlit
 ollama==0.4.4
     # via langchain-ollama
-openai==1.58.1
+openai==1.62.0
     # via langchain-openai
     # via llama-index-agent-openai
     # via llama-index-embeddings-openai
     # via llama-index-llms-openai
+    # via referral-agent
+opencv-python==4.11.0.86
     # via referral-agent
 orjson==3.10.12
     # via langsmith
@@ -240,10 +258,23 @@ pinecone-plugin-interface==0.0.7
 propcache==0.2.1
     # via aiohttp
     # via yarl
+proto-plus==1.26.0
+    # via google-api-core
+    # via google-cloud-documentai
 protobuf==5.29.2
+    # via google-api-core
+    # via google-cloud-documentai
+    # via googleapis-common-protos
+    # via grpcio-status
+    # via proto-plus
     # via streamlit
 pyarrow==18.1.0
     # via streamlit
+pyasn1==0.6.1
+    # via pyasn1-modules
+    # via rsa
+pyasn1-modules==0.4.1
+    # via google-auth
 pydantic==2.10.4
     # via langchain
     # via langchain-core
@@ -273,6 +304,7 @@ python-dateutil==2.9.0.post0
     # via pandas
 python-dotenv==1.0.1
     # via pydantic-settings
+    # via referral-agent
 pytz==2024.2
     # via pandas
 pyyaml==6.0.2
@@ -287,6 +319,7 @@ regex==2024.11.6
     # via nltk
     # via tiktoken
 requests==2.32.3
+    # via google-api-core
     # via langchain
     # via langchain-community
     # via langsmith
@@ -301,6 +334,8 @@ rich==13.9.4
 rpds-py==0.22.3
     # via jsonschema
     # via referencing
+rsa==4.9
+    # via google-auth
 six==1.17.0
     # via python-dateutil
 smmap==5.0.1

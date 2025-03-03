@@ -51,7 +51,7 @@ def parse_and_summarize_pdf(file_path, output_path):
     # Step 3: Use LLM for summarization
     llm = ChatOpenAI(
         model="gpt-4o",
-        temperature=0.7,
+        temperature=1,
     )
     summaries = []
 
@@ -60,24 +60,45 @@ def parse_and_summarize_pdf(file_path, output_path):
         prompt = f"""
             This text is from a 2WW referral form for colorectal cancer. Extract the following details and format the output as JSON. Use the rules below to ensure accuracy:
 
-            0. ** FIT Result
+            1. **Patient Details**:
+            -  Extract the  patient details. If any information is missing, mark as empty string. Some parameters are [Y/N] values and the value will be the one that does not have a strikethrough. If both are struck out, the value will be No. 
+
+            2. **Any adult  (16 years or over)**:
+            - There are three categories here: Abdominal mass, Unexplained rectal mass, and Anal ulceration/mass. For each category, check if the parameter is present in the text and mark as Yes/No. It will be ticked if it is present.
+
+            3. ** FIT Result
             - If the FIT result is less than 10 ugHb/g, this will be recorded as Negative, while greater than or equal to 10 ugHb/g will be Positive. This can be found in the text as 'FIT result: ...'.
 
-            1. **FIT Positive Pathway Results Rules**:
-            - For each parameter in the FIT positive pathway results (Rectal bleeding, Change in bowel habit, Weight loss, Iron Deficiency Anaemia), check if it is mentioned in the text.
+            4. **FIT Positive Pathway Results Rules**:
+            - For each parameter in the FIT positive pathway results (Rectal bleeding, Change in bowel habit, Weight loss, Iron Deficiency Anaemia), check if it is ticked in the text.
             - If the parameter is present and has a FIT value (e.g., 'FIT result: ...'), mark it as 'Yes' and include the FIT value.
-            - If the parameter is present and has recorded values (e.g. Amount, MCV) but no FIT value, mark it as 'Yes' but indicate 'FIT value: Not provided'.
+            - If the parameter is Weight loss, calculate the change in weight by subtracting the 'O/E previous weight' from 'O/E Weight' and include the 'amount' and 'duration' in the output. If there is weight loss and it is greater than 5%, mark it as 'Yes' and include the 'amount' and 'duration'.
+            - If the parameter is Iron deficiency anaemia, check if the Hb value is less than 130 g/L (13 g/dL) if the patient is male or less than 115 g/L (11.5 g/dL) if the patient is female. If this is true, mark it as 'Yes' and include the Hb value.
             - If the parameter has no values at all, mark it as 'No'.
 
-            2. **FIT Negative Pathway Results Rules**:
+            5. **FIT Negative Pathway Results Rules**:
             - For FIT-negative patients with Iron Deficiency Anaemia (IDA), extract the following:
-                - Indicate if the patient meets all criteria for referral:
                 - Aged 40 years or over: Yes/No (Check the recorded age and compare it to 40 years)
                 - FIT Negative: Yes/No (This is a "Yes" if FIT result is less than 10), FIT result: [Value/Not provided]
                 - Ferritin ≤45 µg/L: Yes/No (This is a "Yes" if Ferritin value ≤45µg/L), Ferritin: [Value/Not provided]
                 - Iron deficiency anaemia: Yes/No (Yes if Hb value less than 130 g/L (13 g/dL) in men or 115 g/L (11.5 g/dL) in non-menstruating women). Ensure that Hb values reported in g/L are compared to thresholds directly in g/L, Hb: [Value/Not provided].
+            Indicate if the patient meets all the above criteria for referral (Meets criteria for referral): [Yes/No]
 
-            3. **General Formatting Rules**:
+            6. **Additional History**:
+            Extract the following details from the text:
+            - Last consultation date
+            - Medical history
+            - Medications (including anticoagulation & antiplatelets)
+            - Allergies
+            - Smoking status
+            - Alcohol intake
+            - Recent investigations 
+            - Including FBC, Ferritin, U&Es (within 3 months), AND Urine dipstick, TTG if FIT negative)
+
+            7. **WHO Performance Status**:
+            - Extract the WHO performance status from the text. This will be marked "x" or ticked in the text. The value will be a number between 0 and 4.
+
+            5. **General Formatting Rules**:
             - Provide the output as a JSON object with the following structure:
             {{
                 "Name": [Value],
@@ -85,6 +106,7 @@ def parse_and_summarize_pdf(file_path, output_path):
                 "Gender": [Value],
                 "Date of birth": [Value],
                 "Address": [Value],
+                "Ethnicity": [Value],
                 "Hospital number": [Value],
                 "Landline number:": [Value],
                 "Mobile number:": [Value],
@@ -165,6 +187,7 @@ def parse_and_summarize_pdf(file_path, output_path):
                 "Additional History": {{
                    "Last Consultation": [Value],
                    "Medical Hx": [Value],
+                   "Medications (inc anticoagulation & antiplatelets):": [Value],
                    "Allergies": [Value],
                    "Smoking status": [Value],
                    "Alcohol intake": [Value],
@@ -186,7 +209,6 @@ def parse_and_summarize_pdf(file_path, output_path):
     # Step 1: Clean the formatted_summary string
     # Remove Markdown-like formatting (e.g., ```json) and unnecessary characters
     cleaned_summary = formatted_summary.replace("```json", "").replace("```", "").strip("[ ]")
-    print(cleaned_summary)
     # Step 2: Parse the cleaned string into JSON
     try:
         parsed_json = json.loads(f"[{cleaned_summary}]")  # Treat the cleaned content as an array
@@ -196,19 +218,11 @@ def parse_and_summarize_pdf(file_path, output_path):
         parsed_json = []
 
     # Combine all the chunks into a single JSON structure
-    # formatted_summary = "\n".join(summaries)
-    # Step 3: Save the parsed JSON to a file
-    # output_file_path = "cleaned_combined_output.json"
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(parsed_json, f, indent=4)
 
     print(f"Cleaned JSON saved to {output_path}")
-    
-    # # Save the summary to the output JSON file
-    # with open(output_path, "w", encoding="utf-8") as output_file:
-    #     json.dump(formatted_summary, output_file, indent=4)
 
-    # print(f"Summary saved to {output_path}")
 
 
 # Example Usage
@@ -228,4 +242,4 @@ def process_pdf_folder(input_folder, output_folder):
 
 
 # Example: Process all PDFs in the 'data' folder and save summaries to the 'results' folder
-process_pdf_folder("data", "SampleIOV2WWFormsResultsv1")
+process_pdf_folder("data_1", "data_1_results")
