@@ -9,3 +9,5 @@ neo4j/
 # venv
 .venv
 .secrets.toml
+.pdf
+/src/test/
